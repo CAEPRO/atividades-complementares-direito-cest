@@ -520,7 +520,7 @@ function logout() {
 }
 
 function mostrarSobre() {
-    alert("Atividades Complementares - Versão 1.0\n\nDesenvolvido pelo CAEPRO/UEMA (Centro acadêmico de Engenharia de Produção) para auxiliar os estudantes do curso no gerenciamento de atividades complementares.\n\nPara esclarecimentos de dúvidas ou recuperação de login e senhas, entrar em contato com os perfis oficiais do CAEPRO/UEMA.\n\nEmail: caepro.uema@gmail.com\nInstagram: @caepro.uema\nCentro de Ciências Tecnológicas - CCT/UEMA, Cidade Universitária Paulo VI.");
+    alert("Atividades Complementares - Versão 1.0\n\nDesenvolvido por Diego Bezerra Reinaldo para auxiliar os estudantes do Curso de Direito Bacharelado do CEST no gerenciamento de atividades complementares.\n\nPara esclarecimentos de dúvidas ou recuperação de login e senhas, entrar em contato através dos contatos:\n\nEmail: diego.20230002200@aluno.uema.br\nInstagram: @eaidih\nDiego Bezerra Reinaldo - Engenharia/UEMA, Cidade Universitária Paulo VI.");
 }
 
 // Funções das abas
@@ -1230,3 +1230,4 @@ function showSystemMessage(message, type) {
         messageContainer.remove();
     }, 5000);
 }
+
