@@ -528,8 +528,8 @@ body {
 
 .info-icon {
     position: absolute;
-    right: 10px;
-    top: 45px;
+    right: 1%;
+    top: 40%;
     color: var(--dark-blue);
     cursor: help;
     font-size: clamp(0.9rem, 2.5vw, 1rem);
@@ -953,7 +953,7 @@ body {
     }
 
     .info-icon {
-        top: 35px;
+        top: 40%;
     }
 
     .summary-value {
@@ -1039,3 +1039,4 @@ body {
 #mainScreen {
     animation: fadeIn 0.6s ease-out forwards;
 }
+
