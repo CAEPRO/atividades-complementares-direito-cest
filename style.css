@@ -433,9 +433,22 @@ body {
     background: rgba(243, 115, 33, 1);
 }
 
+/*
 .tabs-container {
     background: var(--off-white);
     padding: 0 30px;
+    border-bottom: 1px solid var(--light-gray);
+}
+*/
+
+@media (max-width: 768px) {
+    .tabs-container {
+        padding: 0 20px;
+    }
+}
+.tabs-container {
+    background: var(--off-white);
+    padding: 0 clamp(1rem, 3vw, 1.875rem);
     border-bottom: 1px solid var(--light-gray);
 }
 
@@ -910,3 +923,4 @@ body {
     display: none;
 
 }
+
