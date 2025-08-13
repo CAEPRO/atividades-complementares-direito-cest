@@ -683,6 +683,19 @@ function handleTabClick(e) {
     }
 }
 
+// Função auxiliar para validar o formato do período
+function validarPeriodo(periodo) {
+    if (typeof periodo !== 'string') return false;
+    
+    // Verifica o formato: 4 dígitos + ponto + 1 ou 2
+    const regex = /^\d{4}\.[12]$/;
+    if (!regex.test(periodo)) return false;
+    
+    // Valida se o ano está em um intervalo razoável (2000-2100)
+    const ano = parseInt(periodo.split('.')[0], 10);
+    return ano >= 2000 && ano <= 2100;
+}
+
 // Cadastro de atividades
 async function handleCadastroSubmit(e) {
     e.preventDefault();
@@ -692,7 +705,13 @@ async function handleCadastroSubmit(e) {
     const horas = parseFloat(document.getElementById("horas").value);
     const periodo = document.getElementById("periodo").value.trim();
 
-    if (!nome || !tipo || isNaN(horas) || horas < 0 || !periodo) {
+    // Validação do período
+    if (!periodo || !validarPeriodo(periodo)) {
+        showSystemMessage("Período inválido! Use o formato: AAAA.S (ex: 2025.1 ou 2025.2)", "error");
+        return;
+    }
+
+    if (!nome || !tipo || isNaN(horas) || horas < 0) {
         showSystemMessage("Preencha todos os campos obrigatórios", "error");
         return;
     }
@@ -730,6 +749,96 @@ async function handleCadastroSubmit(e) {
         };
     } catch (error) {
         showSystemMessage("Erro ao cadastrar atividade: " + error, "error");
+    }
+}
+
+// Edição de atividades
+async function handleEdicaoSubmit(e) {
+    e.preventDefault();
+
+    const id = parseInt(document.getElementById("idEdicao").value);
+    const nome = document.getElementById("nomeEdicao").value.trim();
+    const tipoNovo = document.getElementById("tipoEdicao").value;
+    const horasNovas = parseFloat(document.getElementById("horasEdicao").value);
+    const periodoNovo = document.getElementById("periodoEdicao").value.trim();
+
+    // Validação do período
+    if (!periodoNovo || !validarPeriodo(periodoNovo)) {
+        showSystemMessage("Período inválido! Use o formato: AAAA.S (ex: 2025.1 ou 2025.2)", "error");
+        return;
+    }
+
+    if (!nome || !tipoNovo || isNaN(horasNovas) || horasNovas < 0) {
+        showSystemMessage("Preencha todos os campos obrigatórios", "error");
+        return;
+    }
+
+    try {
+        // Obter atividade original
+        const atividadeOriginal = await new Promise((resolve, reject) => {
+            const transaction = db.transaction("atividades", "readonly");
+            const store = transaction.objectStore("atividades");
+            const request = store.get(id);
+
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject("Erro ao obter atividade");
+        });
+
+        if (!atividadeOriginal) {
+            showSystemMessage("Atividade não encontrada", "error");
+            return;
+        }
+
+        const tipoAntigo = atividadeOriginal.tipo;
+
+        // Atualizar a atividade imediatamente
+        const atividadeAtualizada = {
+            ...atividadeOriginal,
+            nome,
+            tipo: tipoNovo,
+            horasRegistradas: horasNovas,
+            periodo: periodoNovo
+        };
+
+        await new Promise((resolve, reject) => {
+            const transaction = db.transaction("atividades", "readwrite");
+            const store = transaction.objectStore("atividades");
+            const request = store.put(atividadeAtualizada);
+
+            request.onsuccess = resolve;
+            request.onerror = () => reject("Erro ao atualizar atividade");
+        });
+
+        // Determinar tipos afetados
+        const tiposParaRecalcular = new Set();
+        tiposParaRecalcular.add(tipoNovo);
+        if (tipoNovo !== tipoAntigo) {
+            tiposParaRecalcular.add(tipoAntigo);
+        }
+
+        // Recalcular cada tipo usando a nova função
+        for (const tipo of tiposParaRecalcular) {
+            await recalcularHorasTipo(tipo);
+        }
+
+        // Feedback ao usuário
+        const horasValidadas = atividadeAtualizada.horasValidadas || 0;
+        let msg = "Atividade atualizada com sucesso!";
+        if (horasValidadas < horasNovas) {
+            const motivo = horasValidadas === 0 ?
+                "limite global atingido para este tipo de atividade" :
+                "limites de horas atingidos";
+
+            msg = `Atividade atualizada, mas apenas ${horasValidadas}h validadas (${motivo}).`;
+        }
+
+        showSystemMessage(msg, "success");
+        document.getElementById("formEdicao").reset();
+        atualizarTabela();
+        atualizarResumo();
+
+    } catch (error) {
+        showSystemMessage("Erro ao atualizar atividade: " + error, "error");
     }
 }
 
@@ -928,31 +1037,6 @@ function atualizarTabela() {
 
 function handleImprimir() {
     window.print();
-}
-
-// Edição de atividades
-function carregarEdicao(id) {
-    document.querySelector('[data-tab="editar"]').click();
-
-    const transaction = db.transaction("atividades", "readonly");
-    const store = transaction.objectStore("atividades");
-    const request = store.get(id);
-
-    request.onsuccess = function (e) {
-        const atividade = e.target.result;
-
-        if (atividade) {
-            document.getElementById("idEdicao").value = atividade.id;
-            document.getElementById("nomeEdicao").value = atividade.nome;
-            document.getElementById("tipoEdicao").value = atividade.tipo;
-            document.getElementById("horasEdicao").value = atividade.horasRegistradas;
-            document.getElementById("periodoEdicao").value = atividade.periodo;
-        }
-    };
-
-    request.onerror = function () {
-        showSystemMessage("Erro ao carregar atividade para edição", "error");
-    };
 }
 
 function confirmarExclusao(id) {
@@ -1371,6 +1455,7 @@ function showSystemMessage(message, type) {
         messageContainer.remove();
     }, 5000);
 }
+
 
 
 
