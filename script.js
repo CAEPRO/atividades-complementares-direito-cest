@@ -896,7 +896,7 @@ function atualizarTabela() {
               <td>${atividade.horasValidadas}</td>
               <td>${atividade.periodo}</td>
               <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-              <td>
+              <td style="display: flex;">
                 <button class="action-btn" onclick="carregarEdicao(${atividade.id})">
                   <i class="fas fa-edit"></i>
                 </button>
@@ -1369,5 +1369,6 @@ function showSystemMessage(message, type) {
         messageContainer.remove();
     }, 5000);
 }
+
 
 
