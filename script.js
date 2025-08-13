@@ -896,13 +896,15 @@ function atualizarTabela() {
               <td>${atividade.horasValidadas}</td>
               <td>${atividade.periodo}</td>
               <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-              <td style="display: flex;">
-                <button class="action-btn" onclick="carregarEdicao(${atividade.id})">
-                  <i class="fas fa-edit"></i>
-                </button>
-                <button class="action-btn delete" onclick="confirmarExclusao(${atividade.id})">
-                  <i class="fas fa-trash"></i>
-                </button>
+              <td style="vertical-align: middle;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <button class="action-btn" onclick="carregarEdicao(${atividade.id})">
+                     <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-btn delete" onclick="confirmarExclusao(${atividade.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
               </td>
             `;
 
@@ -1369,6 +1371,7 @@ function showSystemMessage(message, type) {
         messageContainer.remove();
     }, 5000);
 }
+
 
 
 
