@@ -1,3 +1,131 @@
+// Função para importar dados de um arquivo CSV
+function importarDados() {
+    // 1. Criar input para seleção de arquivo
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.csv';
+
+    fileInput.onchange = async function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            // 2. Ler e validar o arquivo
+            const conteudo = await lerArquivo(file);
+            const linhas = conteudo.split('\n').filter(linha => linha.trim() !== '');
+
+            // Verificar cabeçalho
+            const cabecalho = linhas[0].split(';');
+            if (cabecalho.length < 7 || cabecalho[1] !== "Nome") {
+                throw new Error("Formato de cabeçalho inválido");
+            }
+
+            // 3. Processar linhas
+            let importadas = 0;
+            let erros = 0;
+
+            for (let i = 1; i < linhas.length; i++) {
+                try {
+                    await cadastroImportacao(linhas[i]);
+                    importadas++;
+                } catch (error) {
+                    console.error(`Erro na linha ${i + 1}:`, error);
+                    erros++;
+                }
+            }
+
+            // Atualizar interface e mostrar resultado
+            atualizarTabela();
+            atualizarResumo();
+            showSystemMessage(
+                `Importação concluída: ${importadas} atividades importadas, ${erros} erros.`,
+                importadas > 0 ? "success" : "error"
+            );
+
+        } catch (error) {
+            showSystemMessage("Falha na importação: " + error.message, "error");
+        }
+    };
+
+    fileInput.click();
+}
+
+// Função auxiliar para ler arquivo
+function lerArquivo(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                // Converter para UTF-8 usando TextDecoder
+                const decoder = new TextDecoder('utf-8');
+                const data = new Uint8Array(e.target.result);
+                const text = decoder.decode(data);
+
+                // Remover possíveis caracteres BOM remanescentes
+                resolve(text.replace(/^\uFEFF/, ''));
+            } catch (error) {
+                reject(new Error("Erro na decodificação do arquivo: " + error.message));
+            }
+        };
+        reader.onerror = () => reject(new Error("Erro na leitura do arquivo"));
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+// Função para processar cada linha do CSV
+async function cadastroImportacao(linhaCSV) {
+    // 4. Extrair dados da linha
+    const campos = linhaCSV.split(';');
+
+    if (campos.length < 7) {
+        throw new Error("Formato inválido: campos insuficientes");
+    }
+
+    // Mapeamento dos índices (baseado na estrutura do CSV)
+    const nome = campos[1].trim();
+    const tipo = campos[2].trim();
+    const horas = parseFloat(campos[3].replace(',', '.')); // Suporte a decimais
+    const periodo = campos[5].trim();
+
+    // Validação básica
+    if (!nome || !tipo || isNaN(horas) || horas < 0 || !periodo) {
+        throw new Error("Dados inválidos ou faltantes");
+    }
+
+    // 5. Criar atividade (reutilizando a lógica original)
+    try {
+        const horasValidadasEfetivas = await calcularHorasValidadas(tipo, horas, periodo);
+
+        const novaAtividade = {
+            usuario: currentUser,
+            nome,
+            tipo,
+            horasRegistradas: horas,
+            horasValidadas: horasValidadasEfetivas,
+            periodo,
+            status: horasValidadasEfetivas > 0 ? 'Aprovado' : 'Rejeitado'
+        };
+
+        // Salvar no IndexedDB
+        await salvarAtividade(novaAtividade);
+
+    } catch (error) {
+        throw new Error(`Erro no processamento: ${error.message}`);
+    }
+}
+
+// Função auxiliar para salvar no IndexedDB
+function salvarAtividade(atividade) {
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction("atividades", "readwrite");
+        const store = transaction.objectStore("atividades");
+        const request = store.add(atividade);
+
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(new Error("Falha ao salvar no banco de dados"));
+    });
+}
+
 // Inicialização do IndexedDB
 const request = indexedDB.open("HorasComplementaresDB", 8);
 
@@ -138,83 +266,83 @@ const HORAS_NECESSARIAS = 200;
 
 // Lista de atividades
 const opcoesAtividades = [
-'Monitoria no Curso',
-'Iniciação Acadêmica',
-'Palestras, seminários, fóruns, encontros, jornadas, cursos, mini-cursos, oficinas, congressos, conferências, oficinas pedagógicas, workshops, simpósios, mesas redondas e outros eventos na área de direito ou áreas afins',
-'Disciplinas extracurriculares, na área de Direito, oferecidas pelo Curso',
-'Estágios extracurriculares na área de Direito',
-'Disciplinas extracurriculares, pertencentes a outros cursos da Faculdade ou de outras IES, em áreas afins a Direito',
-'Cursos de idiomas',
-'Cursos na área da computação e da informática',
-'Projetos de pesquisa ou iniciação científica, orientados por docente da Faculdade, aprovados pelo Colegiado de Curso',
-'Assistência a defesas de monografias do Curso, de dissertações de mestrado ou teses de doutorado, na área de Direito ou áreas afins',
-'Programas ou projetos de extensão, sob orientação de Professor da Faculdade, aprovados pelo Conselho de Curso',
-'Cursos de extensão na área de interesse do curso ou de atualização cultural ou científica',
-'Participação em atividades extracurriculares de assistência ou assessoria, na área de Direito, a populações carentes ou de baixa renda, diretamente ou por intermédio de associações ou sindicatos, mediante convênio com a Faculdade',
-'Participação em Programas de ações sociais ligadas a área de Direito',
-'Participação em programas de voluntariado em assistência jurídica',
-'Participação em órgãos colegiados, inclusive de representação estudantil, da Faculdade'  
+    'Monitoria no Curso',
+    'Iniciação Acadêmica',
+    'Palestras, seminários, fóruns, encontros, jornadas, cursos, mini-cursos, oficinas, congressos, conferências, oficinas pedagógicas, workshops, simpósios, mesas redondas e outros eventos na área de direito ou áreas afins',
+    'Disciplinas extracurriculares, na área de Direito, oferecidas pelo Curso',
+    'Estágios extracurriculares na área de Direito',
+    'Disciplinas extracurriculares, pertencentes a outros cursos da Faculdade ou de outras IES, em áreas afins a Direito',
+    'Cursos de idiomas',
+    'Cursos na área da computação e da informática',
+    'Projetos de pesquisa ou iniciação científica, orientados por docente da Faculdade, aprovados pelo Colegiado de Curso',
+    'Assistência a defesas de monografias do Curso, de dissertações de mestrado ou teses de doutorado, na área de Direito ou áreas afins',
+    'Programas ou projetos de extensão, sob orientação de Professor da Faculdade, aprovados pelo Conselho de Curso',
+    'Cursos de extensão na área de interesse do curso ou de atualização cultural ou científica',
+    'Participação em atividades extracurriculares de assistência ou assessoria, na área de Direito, a populações carentes ou de baixa renda, diretamente ou por intermédio de associações ou sindicatos, mediante convênio com a Faculdade',
+    'Participação em Programas de ações sociais ligadas a área de Direito',
+    'Participação em programas de voluntariado em assistência jurídica',
+    'Participação em órgãos colegiados, inclusive de representação estudantil, da Faculdade'
 ];
 
 
 // Máximo de horas por tipo de atividade (limite global)
 const maxHorasAtividades = {
-'Monitoria no Curso': 60,
-'Iniciação Acadêmica': 20,
-'Palestras, seminários, fóruns, encontros, jornadas, cursos, mini-cursos, oficinas, congressos, conferências, oficinas pedagógicas, workshops, simpósios, mesas redondas e outros eventos na área de direito ou áreas afins': 60,
-'Disciplinas extracurriculares, na área de Direito, oferecidas pelo Curso': 40,
-'Estágios extracurriculares na área de Direito': 30,
-'Disciplinas extracurriculares, pertencentes a outros cursos da Faculdade ou de outras IES, em áreas afins a Direito': 40,
-'Cursos de idiomas': 20,
-'Cursos na área da computação e da informática': 20,
-'Projetos de pesquisa ou iniciação científica, orientados por docente da Faculdade, aprovados pelo Colegiado de Curso': 60,
-'Assistência a defesas de monografias do Curso, de dissertações de mestrado ou teses de doutorado, na área de Direito ou áreas afins': 20,
-'Programas ou projetos de extensão, sob orientação de Professor da Faculdade, aprovados pelo Conselho de Curso': 40,
-'Cursos de extensão na área de interesse do curso ou de atualização cultural ou científica': 40,
-'Participação em atividades extracurriculares de assistência ou assessoria, na área de Direito, a populações carentes ou de baixa renda, diretamente ou por intermédio de associações ou sindicatos, mediante convênio com a Faculdade': 60,
-'Participação em Programas de ações sociais ligadas a área de Direito': 40,
-'Participação em programas de voluntariado em assistência jurídica': 40,
-'Participação em órgãos colegiados, inclusive de representação estudantil, da Faculdade': 40
+    'Monitoria no Curso': 60,
+    'Iniciação Acadêmica': 20,
+    'Palestras, seminários, fóruns, encontros, jornadas, cursos, mini-cursos, oficinas, congressos, conferências, oficinas pedagógicas, workshops, simpósios, mesas redondas e outros eventos na área de direito ou áreas afins': 60,
+    'Disciplinas extracurriculares, na área de Direito, oferecidas pelo Curso': 40,
+    'Estágios extracurriculares na área de Direito': 30,
+    'Disciplinas extracurriculares, pertencentes a outros cursos da Faculdade ou de outras IES, em áreas afins a Direito': 40,
+    'Cursos de idiomas': 20,
+    'Cursos na área da computação e da informática': 20,
+    'Projetos de pesquisa ou iniciação científica, orientados por docente da Faculdade, aprovados pelo Colegiado de Curso': 60,
+    'Assistência a defesas de monografias do Curso, de dissertações de mestrado ou teses de doutorado, na área de Direito ou áreas afins': 20,
+    'Programas ou projetos de extensão, sob orientação de Professor da Faculdade, aprovados pelo Conselho de Curso': 40,
+    'Cursos de extensão na área de interesse do curso ou de atualização cultural ou científica': 40,
+    'Participação em atividades extracurriculares de assistência ou assessoria, na área de Direito, a populações carentes ou de baixa renda, diretamente ou por intermédio de associações ou sindicatos, mediante convênio com a Faculdade': 60,
+    'Participação em Programas de ações sociais ligadas a área de Direito': 40,
+    'Participação em programas de voluntariado em assistência jurídica': 40,
+    'Participação em órgãos colegiados, inclusive de representação estudantil, da Faculdade': 40
 };
 
 // Máximo de horas validadas por tipo por período/registro
 const maxHorasValidadasPorTipo = {
-'Monitoria no Curso': 60,
-'Iniciação Acadêmica': 20,
-'Palestras, seminários, fóruns, encontros, jornadas, cursos, mini-cursos, oficinas, congressos, conferências, oficinas pedagógicas, workshops, simpósios, mesas redondas e outros eventos na área de direito ou áreas afins': 60,
-'Disciplinas extracurriculares, na área de Direito, oferecidas pelo Curso': 40,
-'Estágios extracurriculares na área de Direito': 30,
-'Disciplinas extracurriculares, pertencentes a outros cursos da Faculdade ou de outras IES, em áreas afins a Direito': 40,
-'Cursos de idiomas': 20,
-'Cursos na área da computação e da informática': 20,
-'Projetos de pesquisa ou iniciação científica, orientados por docente da Faculdade, aprovados pelo Colegiado de Curso': 60,
-'Assistência a defesas de monografias do Curso, de dissertações de mestrado ou teses de doutorado, na área de Direito ou áreas afins': 2,
-'Programas ou projetos de extensão, sob orientação de Professor da Faculdade, aprovados pelo Conselho de Curso': 40,
-'Cursos de extensão na área de interesse do curso ou de atualização cultural ou científica': 40,
-'Participação em atividades extracurriculares de assistência ou assessoria, na área de Direito, a populações carentes ou de baixa renda, diretamente ou por intermédio de associações ou sindicatos, mediante convênio com a Faculdade': 60,
-'Participação em Programas de ações sociais ligadas a área de Direito': 40,
-'Participação em programas de voluntariado em assistência jurídica': 40,
-'Participação em órgãos colegiados, inclusive de representação estudantil, da Faculdade': 40
+    'Monitoria no Curso': 60,
+    'Iniciação Acadêmica': 20,
+    'Palestras, seminários, fóruns, encontros, jornadas, cursos, mini-cursos, oficinas, congressos, conferências, oficinas pedagógicas, workshops, simpósios, mesas redondas e outros eventos na área de direito ou áreas afins': 60,
+    'Disciplinas extracurriculares, na área de Direito, oferecidas pelo Curso': 40,
+    'Estágios extracurriculares na área de Direito': 30,
+    'Disciplinas extracurriculares, pertencentes a outros cursos da Faculdade ou de outras IES, em áreas afins a Direito': 40,
+    'Cursos de idiomas': 20,
+    'Cursos na área da computação e da informática': 20,
+    'Projetos de pesquisa ou iniciação científica, orientados por docente da Faculdade, aprovados pelo Colegiado de Curso': 60,
+    'Assistência a defesas de monografias do Curso, de dissertações de mestrado ou teses de doutorado, na área de Direito ou áreas afins': 2,
+    'Programas ou projetos de extensão, sob orientação de Professor da Faculdade, aprovados pelo Conselho de Curso': 40,
+    'Cursos de extensão na área de interesse do curso ou de atualização cultural ou científica': 40,
+    'Participação em atividades extracurriculares de assistência ou assessoria, na área de Direito, a populações carentes ou de baixa renda, diretamente ou por intermédio de associações ou sindicatos, mediante convênio com a Faculdade': 60,
+    'Participação em Programas de ações sociais ligadas a área de Direito': 40,
+    'Participação em programas de voluntariado em assistência jurídica': 40,
+    'Participação em órgãos colegiados, inclusive de representação estudantil, da Faculdade': 40
 };
 
 // Tipo de restrição por atividade
 const restricaoPorTipo = {
-'Monitoria no Curso': 'registro',
-'Iniciação Acadêmica': 'registro',
-'Palestras, seminários, fóruns, encontros, jornadas, cursos, mini-cursos, oficinas, congressos, conferências, oficinas pedagógicas, workshops, simpósios, mesas redondas e outros eventos na área de direito ou áreas afins': 'registro',
-'Disciplinas extracurriculares, na área de Direito, oferecidas pelo Curso': 'registro',
-'Estágios extracurriculares na área de Direito': 'registro',
-'Disciplinas extracurriculares, pertencentes a outros cursos da Faculdade ou de outras IES, em áreas afins a Direito': 'registro',
-'Cursos de idiomas': 'registro',
-'Cursos na área da computação e da informática': 'registro',
-'Projetos de pesquisa ou iniciação científica, orientados por docente da Faculdade, aprovados pelo Colegiado de Curso': 'registro',
-'Assistência a defesas de monografias do Curso, de dissertações de mestrado ou teses de doutorado, na área de Direito ou áreas afins': 'registro',
-'Programas ou projetos de extensão, sob orientação de Professor da Faculdade, aprovados pelo Conselho de Curso': 'registro',
-'Cursos de extensão na área de interesse do curso ou de atualização cultural ou científica': 'registro',
-'Participação em atividades extracurriculares de assistência ou assessoria, na área de Direito, a populações carentes ou de baixa renda, diretamente ou por intermédio de associações ou sindicatos, mediante convênio com a Faculdade': 'registro',
-'Participação em Programas de ações sociais ligadas a área de Direito': 'registro',
-'Participação em programas de voluntariado em assistência jurídica': 'registro',
-'Participação em órgãos colegiados, inclusive de representação estudantil, da Faculdade' : 'registro',
+    'Monitoria no Curso': 'registro',
+    'Iniciação Acadêmica': 'registro',
+    'Palestras, seminários, fóruns, encontros, jornadas, cursos, mini-cursos, oficinas, congressos, conferências, oficinas pedagógicas, workshops, simpósios, mesas redondas e outros eventos na área de direito ou áreas afins': 'registro',
+    'Disciplinas extracurriculares, na área de Direito, oferecidas pelo Curso': 'registro',
+    'Estágios extracurriculares na área de Direito': 'registro',
+    'Disciplinas extracurriculares, pertencentes a outros cursos da Faculdade ou de outras IES, em áreas afins a Direito': 'registro',
+    'Cursos de idiomas': 'registro',
+    'Cursos na área da computação e da informática': 'registro',
+    'Projetos de pesquisa ou iniciação científica, orientados por docente da Faculdade, aprovados pelo Colegiado de Curso': 'registro',
+    'Assistência a defesas de monografias do Curso, de dissertações de mestrado ou teses de doutorado, na área de Direito ou áreas afins': 'registro',
+    'Programas ou projetos de extensão, sob orientação de Professor da Faculdade, aprovados pelo Conselho de Curso': 'registro',
+    'Cursos de extensão na área de interesse do curso ou de atualização cultural ou científica': 'registro',
+    'Participação em atividades extracurriculares de assistência ou assessoria, na área de Direito, a populações carentes ou de baixa renda, diretamente ou por intermédio de associações ou sindicatos, mediante convênio com a Faculdade': 'registro',
+    'Participação em Programas de ações sociais ligadas a área de Direito': 'registro',
+    'Participação em programas de voluntariado em assistência jurídica': 'registro',
+    'Participação em órgãos colegiados, inclusive de representação estudantil, da Faculdade': 'registro',
 };
 
 // Estado da aplicação
@@ -271,7 +399,6 @@ function initEventListeners() {
     document.getElementById("toggleLink").addEventListener("click", toggleLoginMode);
     document.getElementById("aboutLink").addEventListener("click", mostrarSobre);
 
-    document.getElementById("logoutBtn").addEventListener("click", logout);
     document.getElementById("formCadastro").addEventListener("submit", handleCadastroSubmit);
     document.getElementById("formFiltro").addEventListener("submit", handleFiltroSubmit);
     document.getElementById("formEdicao").addEventListener("submit", handleEdicaoSubmit);
@@ -280,7 +407,27 @@ function initEventListeners() {
     document.getElementById("imprimirBtn").addEventListener("click", handleImprimir);
     document.getElementById("cancelarEdicaoBtn").addEventListener("click", limparEdicao);
     document.getElementById("excluirAtividadeBtn").addEventListener("click", deletarAtividade);
-    document.getElementById("exportBtn").addEventListener("click", exportarDados);
+
+    // Debug de eventos
+    document.addEventListener('click', function (e) {
+        console.log('Click propagado para:', e.target);
+    });
+
+    // Nos botões
+    document.getElementById("exportBtn").addEventListener("click", function (e) {
+        console.log('Export click - target:', e.target);
+        e.stopImmediatePropagation();
+    });
+
+    document.getElementById("importBtn").addEventListener("click", function (e) {
+        console.log('Import click - target:', e.target);
+        e.stopImmediatePropagation();
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", function (e) {
+        console.log('Import click - target:', e.target);
+        e.stopImmediatePropagation();
+    });
 
     document.getElementById("tabsContainer").addEventListener("click", handleTabClick);
 
@@ -1051,14 +1198,14 @@ function exportarDados() {
 
     let atividades = [];
     let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "ID,Nome,Tipo,Horas Registradas,Horas Validadas,Período,Status\n";
+    csvContent += "ID;Nome;Tipo;Horas Registradas;Horas Validadas;Período;Status\n";
 
     request.onsuccess = function (e) {
         const cursor = e.target.result;
         if (cursor) {
             const atividade = cursor.value;
             atividades.push(atividade);
-            csvContent += `${atividade.id},${atividade.nome},${atividade.tipo},${atividade.horasRegistradas},${atividade.horasValidadas},${atividade.periodo},${atividade.status}\n`;
+            csvContent += `${atividade.id};${atividade.nome};${atividade.tipo};${atividade.horasRegistradas};${atividade.horasValidadas};${atividade.periodo};${atividade.status}\n`;
             cursor.continue();
         } else {
             const encodedUri = encodeURI(csvContent);
