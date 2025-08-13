@@ -267,82 +267,74 @@ const HORAS_NECESSARIAS = 200;
 // Lista de atividades
 const opcoesAtividades = [
     'Monitoria no Curso',
-    'Iniciação Acadêmica',
-    'Palestras, seminários, fóruns, encontros, jornadas, cursos, mini-cursos, oficinas, congressos, conferências, oficinas pedagógicas, workshops, simpósios, mesas redondas e outros eventos na área de direito ou áreas afins',
-    'Disciplinas extracurriculares, na área de Direito, oferecidas pelo Curso',
-    'Estágios extracurriculares na área de Direito',
-    'Disciplinas extracurriculares, pertencentes a outros cursos da Faculdade ou de outras IES, em áreas afins a Direito',
-    'Cursos de idiomas',
-    'Cursos na área da computação e da informática',
-    'Projetos de pesquisa ou iniciação científica, orientados por docente da Faculdade, aprovados pelo Colegiado de Curso',
-    'Assistência a defesas de monografias do Curso, de dissertações de mestrado ou teses de doutorado, na área de Direito ou áreas afins',
-    'Programas ou projetos de extensão, sob orientação de Professor da Faculdade, aprovados pelo Conselho de Curso',
-    'Cursos de extensão na área de interesse do curso ou de atualização cultural ou científica',
-    'Participação em atividades extracurriculares de assistência ou assessoria, na área de Direito, a populações carentes ou de baixa renda, diretamente ou por intermédio de associações ou sindicatos, mediante convênio com a Faculdade',
-    'Participação em Programas de ações sociais ligadas a área de Direito',
-    'Participação em programas de voluntariado em assistência jurídica',
-    'Participação em órgãos colegiados, inclusive de representação estudantil, da Faculdade'
+    'Palestras, seminários, fóruns, encontros, jornadas, cursos, minicursos, oficinas, congressos, visitas técnicas, conferências, oficinas pedagógicas, workshops, simpósios, mesas redondas e outros eventos na área do curso ou áreas afins',
+    'Disciplinas extracurriculares, na área do curso, oferecidas pelo CEST',
+    'Disciplinas extracurriculares em outros cursos do CEST ou de outras IES, na área do curso ou áreas afins',
+    'Projetos de Pesquisa ou Programa de Iniciação Científica, orientados por docentes do CEST',
+    'Assistir defesas de monografias, de dissertações de mestrado ou teses de doutorado, na área do curso ou áreas afins',
+    'Publicação de Artigos em Revistas Científica',
+    'Publicação de Resumos Científicos em Anais',
+    'Apresentação de Trabalhos Científicos',
+    'Projetos ou atividades de extensão não curricularizada, sob orientação de Professor do CEST',
+    'Programa de Mobilidade Nacional e/ou Internacional (mínimo de 1 mês)',
+    'Ações Sociais ou Ligas Acadêmicas na área do curso ou áreas afins',
+    'Participação em atividades extracurriculares de assistência ou assessoria, na área do curso',
+    'Participação em órgãos colegiados, inclusive de representação estudantil no CEST ou em outras atividades regulamentadas, como voluntária ao TRE'
 ];
-
 
 // Máximo de horas por tipo de atividade (limite global)
 const maxHorasAtividades = {
-    'Monitoria no Curso': 60,
-    'Iniciação Acadêmica': 20,
-    'Palestras, seminários, fóruns, encontros, jornadas, cursos, mini-cursos, oficinas, congressos, conferências, oficinas pedagógicas, workshops, simpósios, mesas redondas e outros eventos na área de direito ou áreas afins': 60,
-    'Disciplinas extracurriculares, na área de Direito, oferecidas pelo Curso': 40,
-    'Estágios extracurriculares na área de Direito': 30,
-    'Disciplinas extracurriculares, pertencentes a outros cursos da Faculdade ou de outras IES, em áreas afins a Direito': 40,
-    'Cursos de idiomas': 20,
-    'Cursos na área da computação e da informática': 20,
-    'Projetos de pesquisa ou iniciação científica, orientados por docente da Faculdade, aprovados pelo Colegiado de Curso': 60,
-    'Assistência a defesas de monografias do Curso, de dissertações de mestrado ou teses de doutorado, na área de Direito ou áreas afins': 20,
-    'Programas ou projetos de extensão, sob orientação de Professor da Faculdade, aprovados pelo Conselho de Curso': 40,
-    'Cursos de extensão na área de interesse do curso ou de atualização cultural ou científica': 40,
-    'Participação em atividades extracurriculares de assistência ou assessoria, na área de Direito, a populações carentes ou de baixa renda, diretamente ou por intermédio de associações ou sindicatos, mediante convênio com a Faculdade': 60,
-    'Participação em Programas de ações sociais ligadas a área de Direito': 40,
-    'Participação em programas de voluntariado em assistência jurídica': 40,
-    'Participação em órgãos colegiados, inclusive de representação estudantil, da Faculdade': 40
+    'Monitoria no Curso': 30,
+    'Palestras, seminários, fóruns, encontros, jornadas, cursos, minicursos, oficinas, congressos, visitas técnicas, conferências, oficinas pedagógicas, workshops, simpósios, mesas redondas e outros eventos na área do curso ou áreas afins': 30,
+    'Disciplinas extracurriculares, na área do curso, oferecidas pelo CEST': 40,
+    'Disciplinas extracurriculares em outros cursos do CEST ou de outras IES, na área do curso ou áreas afins': 40,
+    'Projetos de Pesquisa ou Programa de Iniciação Científica, orientados por docentes do CEST': 40,
+    'Assistir defesas de monografias, de dissertações de mestrado ou teses de doutorado, na área do curso ou áreas afins': 10,
+    'Publicação de Artigos em Revistas Científica': 40,
+    'Publicação de Resumos Científicos em Anais': 20,
+    'Apresentação de Trabalhos Científicos': 15,
+    'Projetos ou atividades de extensão não curricularizada, sob orientação de Professor do CEST': 30,
+    'Programa de Mobilidade Nacional e/ou Internacional (mínimo de 1 mês)': 40,
+    'Ações Sociais ou Ligas Acadêmicas na área do curso ou áreas afins': 20,
+    'Participação em atividades extracurriculares de assistência ou assessoria, na área do curso': 30,
+    'Participação em órgãos colegiados, inclusive de representação estudantil no CEST ou em outras atividades regulamentadas, como voluntária ao TRE': 30,
+
 };
 
 // Máximo de horas validadas por tipo por período/registro
 const maxHorasValidadasPorTipo = {
-    'Monitoria no Curso': 60,
-    'Iniciação Acadêmica': 20,
-    'Palestras, seminários, fóruns, encontros, jornadas, cursos, mini-cursos, oficinas, congressos, conferências, oficinas pedagógicas, workshops, simpósios, mesas redondas e outros eventos na área de direito ou áreas afins': 60,
-    'Disciplinas extracurriculares, na área de Direito, oferecidas pelo Curso': 40,
-    'Estágios extracurriculares na área de Direito': 30,
-    'Disciplinas extracurriculares, pertencentes a outros cursos da Faculdade ou de outras IES, em áreas afins a Direito': 40,
-    'Cursos de idiomas': 20,
-    'Cursos na área da computação e da informática': 20,
-    'Projetos de pesquisa ou iniciação científica, orientados por docente da Faculdade, aprovados pelo Colegiado de Curso': 60,
-    'Assistência a defesas de monografias do Curso, de dissertações de mestrado ou teses de doutorado, na área de Direito ou áreas afins': 2,
-    'Programas ou projetos de extensão, sob orientação de Professor da Faculdade, aprovados pelo Conselho de Curso': 40,
-    'Cursos de extensão na área de interesse do curso ou de atualização cultural ou científica': 40,
-    'Participação em atividades extracurriculares de assistência ou assessoria, na área de Direito, a populações carentes ou de baixa renda, diretamente ou por intermédio de associações ou sindicatos, mediante convênio com a Faculdade': 60,
-    'Participação em Programas de ações sociais ligadas a área de Direito': 40,
-    'Participação em programas de voluntariado em assistência jurídica': 40,
-    'Participação em órgãos colegiados, inclusive de representação estudantil, da Faculdade': 40
+    'Monitoria no Curso': 15,
+    'Palestras, seminários, fóruns, encontros, jornadas, cursos, minicursos, oficinas, congressos, visitas técnicas, conferências, oficinas pedagógicas, workshops, simpósios, mesas redondas e outros eventos na área do curso ou áreas afins': 15,
+    'Disciplinas extracurriculares, na área do curso, oferecidas pelo CEST': 40,
+    'Disciplinas extracurriculares em outros cursos do CEST ou de outras IES, na área do curso ou áreas afins': 40,
+    'Projetos de Pesquisa ou Programa de Iniciação Científica, orientados por docentes do CEST': 20,
+    'Assistir defesas de monografias, de dissertações de mestrado ou teses de doutorado, na área do curso ou áreas afins': 2,
+    'Publicação de Artigos em Revistas Científica': 20,
+    'Publicação de Resumos Científicos em Anais': 10,
+    'Apresentação de Trabalhos Científicos': 5,
+    'Projetos ou atividades de extensão não curricularizada, sob orientação de Professor do CEST': 15,
+    'Programa de Mobilidade Nacional e/ou Internacional (mínimo de 1 mês)': 40,
+    'Ações Sociais ou Ligas Acadêmicas na área do curso ou áreas afins': 10,
+    'Participação em atividades extracurriculares de assistência ou assessoria, na área do curso': 10,
+    'Participação em órgãos colegiados, inclusive de representação estudantil no CEST ou em outras atividades regulamentadas, como voluntária ao TRE': 10
 };
 
 // Tipo de restrição por atividade
 const restricaoPorTipo = {
-    'Monitoria no Curso': 'registro',
-    'Iniciação Acadêmica': 'registro',
-    'Palestras, seminários, fóruns, encontros, jornadas, cursos, mini-cursos, oficinas, congressos, conferências, oficinas pedagógicas, workshops, simpósios, mesas redondas e outros eventos na área de direito ou áreas afins': 'registro',
-    'Disciplinas extracurriculares, na área de Direito, oferecidas pelo Curso': 'registro',
-    'Estágios extracurriculares na área de Direito': 'registro',
-    'Disciplinas extracurriculares, pertencentes a outros cursos da Faculdade ou de outras IES, em áreas afins a Direito': 'registro',
-    'Cursos de idiomas': 'registro',
-    'Cursos na área da computação e da informática': 'registro',
-    'Projetos de pesquisa ou iniciação científica, orientados por docente da Faculdade, aprovados pelo Colegiado de Curso': 'registro',
-    'Assistência a defesas de monografias do Curso, de dissertações de mestrado ou teses de doutorado, na área de Direito ou áreas afins': 'registro',
-    'Programas ou projetos de extensão, sob orientação de Professor da Faculdade, aprovados pelo Conselho de Curso': 'registro',
-    'Cursos de extensão na área de interesse do curso ou de atualização cultural ou científica': 'registro',
-    'Participação em atividades extracurriculares de assistência ou assessoria, na área de Direito, a populações carentes ou de baixa renda, diretamente ou por intermédio de associações ou sindicatos, mediante convênio com a Faculdade': 'registro',
-    'Participação em Programas de ações sociais ligadas a área de Direito': 'registro',
-    'Participação em programas de voluntariado em assistência jurídica': 'registro',
-    'Participação em órgãos colegiados, inclusive de representação estudantil, da Faculdade': 'registro',
+    'Monitoria no Curso':'registro',
+    'Palestras, seminários, fóruns, encontros, jornadas, cursos, minicursos, oficinas, congressos, visitas técnicas, conferências, oficinas pedagógicas, workshops, simpósios, mesas redondas e outros eventos na área do curso ou áreas afins':'registro',
+    'Disciplinas extracurriculares, na área do curso, oferecidas pelo CEST':'registro',
+    'Disciplinas extracurriculares em outros cursos do CEST ou de outras IES, na área do curso ou áreas afins':'registro',
+    'Projetos de Pesquisa ou Programa de Iniciação Científica, orientados por docentes do CEST':'registro',
+    'Assistir defesas de monografias, de dissertações de mestrado ou teses de doutorado, na área do curso ou áreas afins':'registro',
+    'Publicação de Artigos em Revistas Científica':'registro',
+    'Publicação de Resumos Científicos em Anais':'registro',
+    'Apresentação de Trabalhos Científicos':'registro',
+    'Projetos ou atividades de extensão não curricularizada, sob orientação de Professor do CEST':'registro',
+    'Programa de Mobilidade Nacional e/ou Internacional (mínimo de 1 mês)':'registro',
+    'Ações Sociais ou Ligas Acadêmicas na área do curso ou áreas afins':'registro',
+    'Participação em atividades extracurriculares de assistência ou assessoria, na área do curso':'registro',
+    'Participação em órgãos colegiados, inclusive de representação estudantil no CEST ou em outras atividades regulamentadas, como voluntária ao TRE':'registro'
 };
 
 // Estado da aplicação
@@ -1377,4 +1369,5 @@ function showSystemMessage(message, type) {
         messageContainer.remove();
     }, 5000);
 }
+
 
