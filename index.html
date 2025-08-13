@@ -87,14 +87,19 @@
           <p id="userCourse">Direito Bacharelado CEST</p>
         </div>
       </div>
+
       <div class="header-buttons">
-        <button class="header-btn" id="exportBtn">
+        <button class="header-btn" type="button" id="exportBtn" onclick="exportarDados()">
           <i class="fas fa-file-export"></i> Exportar
         </button>
-        <button class="header-btn logout" id="logoutBtn">
+        <button class="header-btn" type="button" id="importBtn" onclick="importarDados()">
+          <i class="fas fa-file-import"></i> Importar
+        </button>
+        <button class="header-btn logout" id="logoutBtn" onclick="logout()">
           <i class="fas fa-sign-out-alt"></i> Sair
         </button>
       </div>
+
     </div>
 
     <div class="tabs-container">
