@@ -842,6 +842,31 @@ async function handleEdicaoSubmit(e) {
     }
 }
 
+// Edição de atividades
+function carregarEdicao(id) {
+    document.querySelector('[data-tab="editar"]').click();
+
+    const transaction = db.transaction("atividades", "readonly");
+    const store = transaction.objectStore("atividades");
+    const request = store.get(id);
+
+    request.onsuccess = function (e) {
+        const atividade = e.target.result;
+
+        if (atividade) {
+            document.getElementById("idEdicao").value = atividade.id;
+            document.getElementById("nomeEdicao").value = atividade.nome;
+            document.getElementById("tipoEdicao").value = atividade.tipo;
+            document.getElementById("horasEdicao").value = atividade.horasRegistradas;
+            document.getElementById("periodoEdicao").value = atividade.periodo;
+        }
+    };
+
+    request.onerror = function () {
+        showSystemMessage("Erro ao carregar atividade para edição", "error");
+    };
+}
+
 // Função para calcular horas validadas
 async function calcularHorasValidadas(tipo, horas, periodo, excludeId = null) {
     // 1. Consultar horas já cadastradas globalmente para o tipo
@@ -1042,89 +1067,6 @@ function handleImprimir() {
 function confirmarExclusao(id) {
     if (confirm("Tem certeza que deseja excluir esta atividade?")) {
         deletarAtividade(id);
-    }
-}
-
-async function handleEdicaoSubmit(e) {
-    e.preventDefault();
-
-    const id = parseInt(document.getElementById("idEdicao").value);
-    const nome = document.getElementById("nomeEdicao").value.trim();
-    const tipoNovo = document.getElementById("tipoEdicao").value;
-    const horasNovas = parseFloat(document.getElementById("horasEdicao").value);
-    const periodoNovo = document.getElementById("periodoEdicao").value.trim();
-
-    if (!nome || !tipoNovo || isNaN(horasNovas) || horasNovas < 0 || !periodoNovo) {
-        showSystemMessage("Preencha todos os campos obrigatórios", "error");
-        return;
-    }
-
-    try {
-        // Obter atividade original
-        const atividadeOriginal = await new Promise((resolve, reject) => {
-            const transaction = db.transaction("atividades", "readonly");
-            const store = transaction.objectStore("atividades");
-            const request = store.get(id);
-
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject("Erro ao obter atividade");
-        });
-
-        if (!atividadeOriginal) {
-            showSystemMessage("Atividade não encontrada", "error");
-            return;
-        }
-
-        const tipoAntigo = atividadeOriginal.tipo;
-
-        // Atualizar a atividade imediatamente
-        const atividadeAtualizada = {
-            ...atividadeOriginal,
-            nome,
-            tipo: tipoNovo,
-            horasRegistradas: horasNovas,
-            periodo: periodoNovo
-        };
-
-        await new Promise((resolve, reject) => {
-            const transaction = db.transaction("atividades", "readwrite");
-            const store = transaction.objectStore("atividades");
-            const request = store.put(atividadeAtualizada);
-
-            request.onsuccess = resolve;
-            request.onerror = () => reject("Erro ao atualizar atividade");
-        });
-
-        // Determinar tipos afetados
-        const tiposParaRecalcular = new Set();
-        tiposParaRecalcular.add(tipoNovo);
-        if (tipoNovo !== tipoAntigo) {
-            tiposParaRecalcular.add(tipoAntigo);
-        }
-
-        // Recalcular cada tipo usando a nova função
-        for (const tipo of tiposParaRecalcular) {
-            await recalcularHorasTipo(tipo);
-        }
-
-        // Feedback ao usuário
-        const horasValidadas = atividadeAtualizada.horasValidadas || 0;
-        let msg = "Atividade atualizada com sucesso!";
-        if (horasValidadas < horasNovas) {
-            const motivo = horasValidadas === 0 ?
-                "limite global atingido para este tipo de atividade" :
-                "limites de horas atingidos";
-
-            msg = `Atividade atualizada, mas apenas ${horasValidadas}h validadas (${motivo}).`;
-        }
-
-        showSystemMessage(msg, "success");
-        document.getElementById("formEdicao").reset();
-        atualizarTabela();
-        atualizarResumo();
-
-    } catch (error) {
-        showSystemMessage("Erro ao atualizar atividade: " + error, "error");
     }
 }
 
@@ -1455,6 +1397,7 @@ function showSystemMessage(message, type) {
         messageContainer.remove();
     }, 5000);
 }
+
 
 
 
