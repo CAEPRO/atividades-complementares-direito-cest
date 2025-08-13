@@ -847,7 +847,7 @@ body {
     }
 
     .header-buttons {
-        width: 50%;
+        width: 100%;
         justify-content: center;
         padding-top: inherit;
     }
@@ -1062,3 +1062,4 @@ body {
 #mainScreen {
     animation: fadeIn 0.6s ease-out forwards;
 }
+
